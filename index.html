@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dữ liệu trạm</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    table { border-collapse: collapse; width: 80%; margin: 20px auto; }
+    th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+    th { background-color: #eee; }
+    #controls { text-align: center; margin: 20px; }
+    select { font-size: 16px; padding: 4px; }
+    #bdTable { width: 40%; margin: 10px auto; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="stationSelect">Chọn trạm: </label>
+    <select id="stationSelect">
+      <option value="553100">553100 - Hội Khách</option>
+      <option value="553300">553300 - Ái Nghĩa</option>
+    </select>
+  </div>
+
+  <!-- Bảng chỉ số BĐ -->
+  <table id="bdTable">
+    <thead>
+      <tr>
+        <th>BĐ1</th>
+        <th>BĐ2</th>
+        <th>BĐ3</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr id="bdValues">
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 style="text-align:center;" id="stationTitle">Dữ liệu trạm 553100 - Hội Khách</h2>
+  
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Mã trạm</th>
+        <th>Thời gian</th>
+        <th>Số liệu</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="3">Đang tải dữ liệu...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const stationNames = {
+      "553100": "Hội Khách",
+      "553300": "Ái Nghĩa"
+    };
+
+    // Dữ liệu BĐ theo trạm
+    const bdData = {
+      "553100": ["-", "-", "-"],   // Hội Khách
+      "553300": [6.5, 8.0, 9.0]   // Ái Nghĩa
+    };
+
+    function updateBDTable(matram) {
+      const tr = document.getElementById('bdValues');
+      const values = bdData[matram] || ["-", "-", "-"];
+      tr.innerHTML = values.map(v => `<td>${v}</td>`).join('');
+    }
+
+    async function loadData(matram) {
+      const tbody = document.querySelector('#dataTable tbody');
+      tbody.innerHTML = '<tr><td colspan="3">Đang tải dữ liệu...</td></tr>';
+
+      try {
+        const now = new Date();
+        const pad = (n) => n.toString().padStart(2, '0');
+        const today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+        const thoigianbd = `${today} 00:00:00`;
+        const thoigiankt = `${today} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+        const apiUrl = `/.netlify/functions/proxy?matram=${matram}&thoigianbd=${encodeURIComponent("'" + thoigianbd + "'")}&thoigiankt=${encodeURIComponent("'" + thoigiankt + "'")}`;
+
+        const res = await fetch(apiUrl);
+        const json = await res.json();
+
+        tbody.innerHTML = '';
+
+        if (!json.data || json.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3">Không có dữ liệu</td></tr>';
+          return;
+        }
+
+        document.getElementById('stationTitle').textContent = `Dữ liệu trạm ${matram} - ${stationNames[matram] || ""}`;
+
+        json.data.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${item.matram}</td>
+            <td>${item.Thoigian_SL}</td>
+            <td>${item.Solieu}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="3">Lỗi tải dữ liệu</td></tr>';
+      }
+    }
+
+    // Load dữ liệu mặc định
+    const select = document.getElementById('stationSelect');
+    updateBDTable(select.value);
+    loadData(select.value);
+
+    // Khi thay đổi trạm
+    select.addEventListener('change', () => {
+      updateBDTable(select.value);
+      loadData(select.value);
+    });
+  </script>
+</body>
+</html>
