@@ -84,7 +84,7 @@
         const thoigianbd = `${today} 00:00:00`;
         const thoigiankt = `${today} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-        const apiUrl = `/.netlify/functions/proxy?matram=${matram}&thoigianbd=${encodeURIComponent("'" + thoigianbd + "'")}&thoigiankt=${encodeURIComponent("'" + thoigiankt + "'")}`;
+        const apiUrl = `/proxy?matram=${matram}&thoigianbd=${encodeURIComponent("'" + thoigianbd + "'")}&thoigiankt=${encodeURIComponent("'" + thoigiankt + "'")}`;
 
         const res = await fetch(apiUrl);
         const json = await res.json();
@@ -127,3 +127,4 @@
   </script>
 </body>
 </html>
+
