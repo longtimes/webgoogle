@@ -98,7 +98,7 @@
 
         document.getElementById('stationTitle').textContent = `Dữ liệu trạm ${matram} - ${stationNames[matram] || ""}`;
 
-        json.data.forEach(item => {
+        json.data.slice().reverse().forEach(item => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${item.matram}</td>
@@ -127,5 +127,6 @@
   </script>
 </body>
 </html>
+
 
 
